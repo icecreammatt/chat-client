@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -35,14 +36,14 @@ func main() {
 				rconn.Close()
 				os.Exit(1)
 			}
-			var str string = fmt.Sprint(string(buf))
+			stringCleaned := bytes.Trim(buf, "\x00")
+			var str string = fmt.Sprintf("%s", stringCleaned)
 			var message Message
-			err = json.Unmarshal([]byte(str), &message)
-			// TODO: figure out why message is not being deserialized properly
-			// checkError(err)
+			err = json.Unmarshal([]byte(stringCleaned), &message)
+			checkError(err)
 
 			fmt.Println(str)
-			fmt.Printf("%d: %s\n", message.ClientId, message.Message)
+			fmt.Printf("%d: %s", message.ClientId, message.Message)
 			fmt.Print("> ")
 		}
 	}()
