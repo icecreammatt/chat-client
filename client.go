@@ -22,7 +22,8 @@ func main() {
 	}
 	service := os.Args[1]
 
-	rconn, err := net.Dial("tcp4", service)
+	tcpAddr, err := net.ResolveTCPAddr("tcp4", service)
+	conn, err := net.DialTCP("tcp4", nil, tcpAddr)
 	if err != nil {
 		fmt.Println("Error", err.Error())
 		os.Exit(1)
@@ -31,9 +32,9 @@ func main() {
 	go func() {
 		for {
 			buf := make([]byte, 512)
-			_, err := rconn.Read(buf)
+			_, err := conn.Read(buf)
 			if err != nil {
-				rconn.Close()
+				conn.Close()
 				os.Exit(1)
 			}
 			stringCleaned := bytes.Trim(buf, "\x00")
@@ -48,16 +49,6 @@ func main() {
 		}
 	}()
 
-	tcpAddr, err := net.ResolveTCPAddr("tcp4", service)
-	checkError(err)
-
-	// Writer
-	conn, err := net.DialTCP("tcp4", nil, tcpAddr)
-	checkError(err)
-	if err != nil {
-		fmt.Println("error: ", err.Error())
-		os.Exit(1)
-	}
 	for {
 		consoleReader := bufio.NewReader(os.Stdin)
 		fmt.Print("> ")
@@ -70,7 +61,7 @@ func main() {
 		_, err = conn.Write([]byte(input))
 		checkError(err)
 	}
-
+	conn.Close()
 	os.Exit(0)
 }
 
