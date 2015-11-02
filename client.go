@@ -3,9 +3,9 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"net"
 	"os"
 	"strings"
 )
@@ -22,8 +22,15 @@ func main() {
 	}
 	service := os.Args[1]
 
-	tcpAddr, err := net.ResolveTCPAddr("tcp4", service)
-	conn, err := net.DialTCP("tcp4", nil, tcpAddr)
+	cert, err := tls.LoadX509KeyPair("client.pem", "client.key")
+
+	if err != nil {
+		panic("Error loading X509 key pair")
+	}
+
+	config := tls.Config{Certificates: []tls.Certificate{cert}, InsecureSkipVerify: true}
+
+	conn, err := tls.Dial("tcp", service, &config)
 	if err != nil {
 		fmt.Println("Error", err.Error())
 		os.Exit(1)
