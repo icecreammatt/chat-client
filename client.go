@@ -38,7 +38,7 @@ func main() {
 
 	go func() {
 		for {
-			buf := make([]byte, 512)
+			buf := make([]byte, 1500)
 			_, err := conn.Read(buf)
 			if err != nil {
 				conn.Close()
@@ -48,7 +48,15 @@ func main() {
 			var str string = fmt.Sprintf("%s", stringCleaned)
 			var message Message
 			err = json.Unmarshal([]byte(stringCleaned), &message)
-			checkError(err)
+			if err != nil {
+				fmt.Println("Error parsing JSON", err.Error())
+				fmt.Println("Raw Message: ", str)
+			} else {
+				fmt.Println(str)
+				fmt.Printf("%d: %s", message.ClientId, message.Message)
+				fmt.Print("> ")
+
+			}
 
 			fmt.Println(str)
 			fmt.Printf("%d: %s", message.ClientId, message.Message)
